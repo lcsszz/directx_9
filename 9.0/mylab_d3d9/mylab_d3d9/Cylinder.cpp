@@ -39,7 +39,7 @@ void CCylinder::Init( LPDIRECT3DDEVICE9 pDevice )
 	m_pDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
 
 		//关闭光照处理, 默认情况下启用光照处理 环境光 没有材质的物体 显示黑色
-    m_pDevice->SetRenderState( D3DRS_LIGHTING, FALSE );
+    m_pDevice->SetRenderState( D3DRS_LIGHTING, true );
 }
 
 void CCylinder::Update()

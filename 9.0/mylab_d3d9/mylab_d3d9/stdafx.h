@@ -28,3 +28,10 @@
 #ifndef SAFE_DELETE
 #define SAFE_DELETE(p)       { if(p) { delete (p);     (p)=NULL; } }
 #endif
+
+enum LightTypes
+{
+LIGHT_TYPE_DIRECTIONAL = 0,
+LIGHT_TYPE_SPOT,
+LIGHT_TYPE_POINT,
+};

@@ -3,12 +3,17 @@
 #include "Cylinder.h"
 #include "Box.h"
 #include "Quad.h"
+#include "QuadInlight.h"
+#include "QuadSimple.h"
+#include "Light.h"
+
 
 CGame::CGame(void) :
 m_pD3D(NULL),
 m_pDevice(NULL),
 m_bDeviceLost(false),
-m_pCylinder(NULL)
+m_pCylinder(NULL),
+m_bRenderInWireFrame(false)
 {
 }
 
@@ -34,9 +39,17 @@ bool CGame::Init( HINSTANCE hInstance, HWND hWnd )
 	m_pBox = new CBox;
 	m_pBox->Init(m_pDevice);
 
-	m_pQuad = new CQuad;
-	m_pQuad->Init(m_pDevice,27.0,27.0);
+	//m_pQuad = new CQuad;
+	//m_pQuad->Init(m_pDevice);
 
+	m_pQuadInlight = new CQuadInlight;
+	m_pQuadInlight->Init(m_pDevice);
+
+	m_pQuadSimple = new CQuadSimple;
+	m_pQuadSimple->Init(m_pDevice);
+
+	m_pLight = new CLight;
+	m_pLight->Init(m_pDevice);
 	return true;
 }
 
@@ -103,7 +116,8 @@ void CGame::Update(float fElapsedTime)
 	D3DXMatrixLookAtLH( &matView, &D3DXVECTOR3(13.0f, 13.0f, 13.0f), &D3DXVECTOR3(0.0f, 0.0f, 0.0f), &D3DXVECTOR3(0.0f, 1.0f, 0.0f) );
 	 //摄像机的坐标系                                 起点                                                  终点                                            y轴
 	m_pDevice->SetTransform(D3DTS_VIEW, &matView);
-//	m_pCylinder->Update();    //圆筒的旋转
+//	m_pCylinder->Update();    //圆筒的旋转ht
+	m_pLight->Update(fElapsedTime);
 }
 
 void CGame::Render(float fElapsedTime)
@@ -148,8 +162,10 @@ void CGame::Render(float fElapsedTime)
 //	m_pCylinder->Render();
 //	m_pBox->Render();
 //	m_pQuad->Render();
-	
+	m_pLight->Render(fElapsedTime);
 	DrawScene();
+
+//	m_pQuadSimple->Render();
 	m_pDevice->EndScene();
 
 	hr = m_pDevice->Present( NULL, NULL, NULL, NULL );
@@ -177,17 +193,49 @@ void CGame::DrawScene(void)
 	D3DXMatrixTranslation( &matTrans, -5.0f, -5.0f, -5.0f );
 	D3DXMatrixRotationZ( &matRotate, 0.0f );
 	matWorld = matRotate * matTrans;
-	m_pQuad->Render( matWorld );
+	m_pQuadInlight->Render( matWorld );
+	//m_pQuadSimple->Render(matWorld);
 
 	// 绘制墙体
 	D3DXMatrixTranslation( &matTrans, -5.0f,5.0f, -5.0f );
 	D3DXMatrixRotationZ( &matRotate, -D3DXToRadian(90.0) );
 	matWorld = matRotate * matTrans;
-	m_pQuad->Render( matWorld );
+	m_pQuadInlight->Render( matWorld );
 
 	// 绘制墙体
 	D3DXMatrixTranslation( &matTrans, -5.0f, 5.0f, -5.0f );
 	D3DXMatrixRotationX( &matRotate,  D3DXToRadian(90.0) );
 	matWorld = matRotate * matTrans;
-	m_pQuad->Render( matWorld );
+	m_pQuadInlight->Render( matWorld );
+}
+
+void CGame::HandleMessage(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case '1':
+			m_pLight->m_lightType = LIGHT_TYPE_DIRECTIONAL;
+			break;
+
+		case '2':
+			m_pLight->m_lightType = LIGHT_TYPE_SPOT;
+			break;
+
+		case '3':
+			m_pLight->m_lightType = LIGHT_TYPE_POINT;
+			break;
+
+		case VK_F1:
+			m_bRenderInWireFrame = !m_bRenderInWireFrame;
+			if( m_bRenderInWireFrame == true )
+				m_pDevice->SetRenderState( D3DRS_FILLMODE, D3DFILL_WIREFRAME );
+			else
+				m_pDevice->SetRenderState( D3DRS_FILLMODE, D3DFILL_SOLID );
+			break;
+		}
+		break;
+	}
 }

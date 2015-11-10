@@ -105,7 +105,7 @@ void CLight::Update(float fElapsedTime)
 void CLight::Render(float fElapsedTime)
 {
 	// 关闭灯光0，打开灯光1、2以便照亮墙体和地面
-	m_pDevice->LightEnable( 0, FALSE );
+	m_pDevice->LightEnable( 0, TRUE );
 	m_pDevice->LightEnable( 1, TRUE );
 	m_pDevice->LightEnable( 2, TRUE );
 }
@@ -118,26 +118,3 @@ void CLight::Restore()
 	m_pDevice->LightEnable( 2, FALSE );
 }
 
-void CLight::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	switch (message)
-	{
-	case WM_KEYDOWN:
-		switch (wParam)
-		{
-		case '1':
-			m_lightType = LIGHT_TYPE_DIRECTIONAL;
-			break;
-
-		case '2':
-			m_lightType = LIGHT_TYPE_SPOT;
-			break;
-
-		case '3':
-			m_lightType = LIGHT_TYPE_POINT;
-			break;
-
-		}
-		break;
-	}
-}

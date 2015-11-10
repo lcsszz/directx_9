@@ -63,7 +63,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			// 两个时间戳之间的差值
 			static float fPreTime = static_cast<float>(timeGetTime());
 			float fCurrentTime = static_cast<float>(timeGetTime());
-			float fElapsedTime = (fCurrentTime - fPreTime)*0.001f;
+			float fElapsedTime = (fCurrentTime - fPreTime)*0.001f+ 0.001f;
 			LogicFrame(fElapsedTime);
 			RenderFrame(fElapsedTime);
 			fPreTime = fCurrentTime;
@@ -161,7 +161,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-
+	g_pGame ->HandleMessage(hWnd,message,wParam,lParam);
 	switch (message)
 	{
 	case WM_COMMAND:

@@ -4,6 +4,7 @@
 */
 class CQuad
 {
+public:
 	LPDIRECT3DDEVICE9		m_pDevice;
 
 	/// 顶点
@@ -11,13 +12,6 @@ class CQuad
 	/// 纹理
 	LPDIRECT3DTEXTURE9 m_pTexture;
 
-	int		m_nNumVertsAlongX;
-	int		m_nNumVertsAlongZ;
-	float	m_fMeshLengthAlongX;
-	float	m_fMeshLengthAlongZ;
-	int		m_nMeshVertCount;
-
-public:
 	struct QuadVertex
 	{
 		float x, y, z;
@@ -44,8 +38,8 @@ public:
 		@param
 			nType 初始朝向类型 0-X轴方向,1-Y轴方向,2-Z轴方向
 	*/
-	void Init( LPDIRECT3DDEVICE9 pDevice, float fSizeX, float fSizeZ);
-	void Render(D3DXMATRIX& matWorld );
+   virtual void Init( LPDIRECT3DDEVICE9 pDevice)=0;
+   virtual void Render(D3DXMATRIX& matWorld )=0;
 
 	void SetTexture(LPDIRECT3DTEXTURE9 pTexture) { m_pTexture = pTexture; }
 };
