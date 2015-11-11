@@ -2,18 +2,16 @@
 #include "Game.h"
 #include "Cylinder.h"
 #include "Box.h"
-#include "Quad.h"
-#include "QuadInlight.h"
-#include "QuadSimple.h"
 #include "Light.h"
+#include "Scene_Lightbox.h"
 
 
 CGame::CGame(void) :
 m_pD3D(NULL),
 m_pDevice(NULL),
 m_bDeviceLost(false),
-m_pCylinder(NULL),
-m_bRenderInWireFrame(false)
+m_bRenderInWireFrame(false),
+m_pScene_Lightbox(NULL)
 {
 }
 
@@ -21,8 +19,8 @@ CGame::~CGame(void)
 {
 	SAFE_RELEASE(m_pD3D);
 	SAFE_RELEASE(m_pDevice);
-
-	SAFE_DELETE(m_pCylinder);
+	SAFE_DELETE(m_pScene_Lightbox);
+//	SAFE_DELETE(m_pCylinder);
 }
 
 bool CGame::Init( HINSTANCE hInstance, HWND hWnd )
@@ -33,23 +31,9 @@ bool CGame::Init( HINSTANCE hInstance, HWND hWnd )
 	if(FAILED(_InitD3D(hWnd)))
 		return false;
 
-	m_pCylinder = new CCylinder;
-	m_pCylinder->Init(m_pDevice);
+	m_pScene_Lightbox = new CScene_Lightbox;
+	m_pScene_Lightbox->Init(m_pDevice);
 
-	m_pBox = new CBox;
-	m_pBox->Init(m_pDevice);
-
-	//m_pQuad = new CQuad;
-	//m_pQuad->Init(m_pDevice);
-
-	m_pQuadInlight = new CQuadInlight;
-	m_pQuadInlight->Init(m_pDevice);
-
-	m_pQuadSimple = new CQuadSimple;
-	m_pQuadSimple->Init(m_pDevice);
-
-	m_pLight = new CLight;
-	m_pLight->Init(m_pDevice);
 	return true;
 }
 
@@ -89,6 +73,17 @@ HRESULT CGame::_InitD3D(HWND hWnd)
 	{
 		return E_FAIL;
 	}
+	
+	//可以修改
+	D3DXMATRIX matRroj;  //投影矩阵
+	D3DXMatrixPerspectiveFovLH( &matRroj, D3DX_PI/4, 1.f, 1.f, 500.0f ); //张角 宽高比 最近距离 最远距离
+	m_pDevice->SetTransform(D3DTS_PROJECTION, &matRroj);
+
+	// 更新视矩阵
+	D3DXMATRIX matView;
+	D3DXMatrixLookAtLH( &matView, &D3DXVECTOR3(0.0f, 0.0f, -50.0f), &D3DXVECTOR3(0.0f, 0.0f, 0.0f), &D3DXVECTOR3(0.0f, 1.0f, 0.0f) );
+	 //摄像机的坐标系             起点                                 终点                             y轴
+	m_pDevice->SetTransform(D3DTS_VIEW, &matView);
 
 	//视区
 	//RECT rect;
@@ -107,17 +102,9 @@ HRESULT CGame::_InitD3D(HWND hWnd)
 
 void CGame::Update(float fElapsedTime)
 {
-	//可以修改
-	D3DXMATRIX matRroj;  //投影矩阵
-	D3DXMatrixPerspectiveFovLH( &matRroj, D3DX_PI/4, 4.f/3.f, 1.f, 1000.0f ); //张角 宽高比 最近距离 最远距离
-	m_pDevice->SetTransform(D3DTS_PROJECTION, &matRroj);
-	// 更新视矩阵
-	D3DXMATRIX matView;
-	D3DXMatrixLookAtLH( &matView, &D3DXVECTOR3(13.0f, 13.0f, 13.0f), &D3DXVECTOR3(0.0f, 0.0f, 0.0f), &D3DXVECTOR3(0.0f, 1.0f, 0.0f) );
-	 //摄像机的坐标系                                 起点                                                  终点                                            y轴
-	m_pDevice->SetTransform(D3DTS_VIEW, &matView);
+
 //	m_pCylinder->Update();    //圆筒的旋转ht
-	m_pLight->Update(fElapsedTime);
+	m_pScene_Lightbox->Update(fElapsedTime);
 }
 
 void CGame::Render(float fElapsedTime)
@@ -158,14 +145,9 @@ void CGame::Render(float fElapsedTime)
 					  D3DCOLOR_XRGB(0,50,128), 1.0f, 0 );
 
 	m_pDevice->BeginScene();
-
 //	m_pCylinder->Render();
 //	m_pBox->Render();
-//	m_pQuad->Render();
-	m_pLight->Render(fElapsedTime);
-	DrawScene();
-
-//	m_pQuadSimple->Render();
+	m_pScene_Lightbox->Render();
 	m_pDevice->EndScene();
 
 	hr = m_pDevice->Present( NULL, NULL, NULL, NULL );
@@ -181,34 +163,59 @@ void CGame::RestoreDeviceObjects(void)
 {
 }
 
-void CGame::DrawScene(void)
-{
-//===================================================================//
-
-	D3DXMATRIX matWorld;
-	D3DXMATRIX matTrans;
-	D3DXMATRIX matRotate;
-
-	// 绘制地面
-	D3DXMatrixTranslation( &matTrans, -5.0f, -5.0f, -5.0f );
-	D3DXMatrixRotationZ( &matRotate, 0.0f );
-	matWorld = matRotate * matTrans;
-	m_pQuadInlight->Render( matWorld );
-	//m_pQuadSimple->Render(matWorld);
-
-	// 绘制墙体
-	D3DXMatrixTranslation( &matTrans, -5.0f,5.0f, -5.0f );
-	D3DXMatrixRotationZ( &matRotate, -D3DXToRadian(90.0) );
-	matWorld = matRotate * matTrans;
-	m_pQuadInlight->Render( matWorld );
-
-	// 绘制墙体
-	D3DXMatrixTranslation( &matTrans, -5.0f, 5.0f, -5.0f );
-	D3DXMatrixRotationX( &matRotate,  D3DXToRadian(90.0) );
-	matWorld = matRotate * matTrans;
-	m_pQuadInlight->Render( matWorld );
-}
-
+//void CGame::DrawScene(void)
+//{
+////===================================================================//
+//
+//	D3DXMATRIX matWorld;
+//	D3DXMATRIX matTrans;
+//	D3DXMATRIX matRotate;
+//
+//	// 绘制地面
+//	D3DXMatrixTranslation( &matTrans, -5.0f, -5.0f, -5.0f );
+//	D3DXMatrixRotationZ( &matRotate, 0.0f );
+//	matWorld = matRotate * matTrans;
+//	m_pQuadInlight->Render( matWorld );
+//	//m_pQuadSimple->Render(matWorld);
+//
+//	// 绘制墙体
+//	D3DXMatrixTranslation( &matTrans, -5.0f,5.0f, -5.0f );
+//	D3DXMatrixRotationZ( &matRotate, -D3DXToRadian(90.0) );
+//	matWorld = matRotate * matTrans;
+//	m_pQuadInlight->Render( matWorld );
+//
+//	// 绘制墙体
+//	D3DXMatrixTranslation( &matTrans, -5.0f, 5.0f, -5.0f );
+//	D3DXMatrixRotationX( &matRotate,  D3DXToRadian(90.0) );
+//	matWorld = matRotate * matTrans;
+//	m_pQuadInlight->Render( matWorld );
+//
+//	//设置光源的位置和方向
+//  if( m_pLight->m_lightType == LIGHT_TYPE_POINT )
+//	{
+//		// 设置位置
+//		D3DXMatrixTranslation( &matWorld, m_pLight->m_light.Position.x, m_pLight->m_light.Position.y,m_pLight->m_light.Position.z );
+//		m_pDevice->SetTransform( D3DTS_WORLD, &matWorld );
+//		//m_pDevice->SetTexture(0, NULL);
+//		//m_pSphereMesh->DrawSubset(0);
+//	}
+//	else
+//	{
+//		// 设置位置及方向
+//		D3DXVECTOR3 vecFrom( m_pLight->m_light.Position.x, m_pLight->m_light.Position.y, m_pLight->m_light.Position.z );
+//		D3DXVECTOR3 vecAt( m_pLight->m_light.Position.x + m_pLight->m_light.Direction.x, 
+//						   m_pLight->m_light.Position.y + m_pLight->m_light.Direction.y,
+//						   m_pLight->m_light.Position.z + m_pLight->m_light.Direction.z );
+//		D3DXVECTOR3 vecUp( 0.0f, 1.0f, 0.0f );
+//		D3DXMATRIX matWorldInv;
+//		D3DXMatrixLookAtLH( &matWorldInv, &vecFrom, &vecAt, &vecUp);
+//		D3DXMatrixInverse( &matWorld, NULL, &matWorldInv);
+//		m_pDevice->SetTransform( D3DTS_WORLD, &matWorld );
+//		//m_pDevice->SetTexture(0, NULL);
+//		//m_pConeMesh->DrawSubset(0);
+//	}
+//}
+//
 void CGame::HandleMessage(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 {
 	switch (message)
@@ -217,15 +224,15 @@ void CGame::HandleMessage(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam)
 		switch (wParam)
 		{
 		case '1':
-			m_pLight->m_lightType = LIGHT_TYPE_DIRECTIONAL;
+			m_pScene_Lightbox->m_pLight->m_lightType = LIGHT_TYPE_DIRECTIONAL;
 			break;
 
 		case '2':
-			m_pLight->m_lightType = LIGHT_TYPE_SPOT;
+			m_pScene_Lightbox->m_pLight->m_lightType = LIGHT_TYPE_SPOT;
 			break;
 
 		case '3':
-			m_pLight->m_lightType = LIGHT_TYPE_POINT;
+			m_pScene_Lightbox->m_pLight->m_lightType = LIGHT_TYPE_POINT;
 			break;
 
 		case VK_F1:

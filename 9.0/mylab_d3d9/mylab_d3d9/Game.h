@@ -3,10 +3,8 @@
 
 class CCylinder;
 class CBox;
-class CQuad;
-class CQuadInlight;
-class CQuadSimple;
 class CLight;
+class CScene_Lightbox;
 
 class CGame
 {
@@ -21,12 +19,9 @@ class CGame
 	HRESULT _InitD3D(HWND hWnd);
 
 	//////////////////////////////////////////////////////////////////////////
-	CCylinder		*m_pCylinder;
-	CBox			*m_pBox;
-	//CQuad			*m_pQuad;
-	CQuad			*m_pQuadInlight;
-	CQuadSimple     *m_pQuadSimple;
-	CLight			*m_pLight;
+	CCylinder		  *m_pCylinder;
+	CBox			  *m_pBox;
+	CScene_Lightbox   *m_pScene_Lightbox;
 	//////////////////////////////////////////////////////////////////////////
 
 public:

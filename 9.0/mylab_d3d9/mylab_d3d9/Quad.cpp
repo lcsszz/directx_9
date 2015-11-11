@@ -15,7 +15,7 @@ CQuad::~CQuad(void)
 
 void CQuad::Init(LPDIRECT3DDEVICE9 pDevice)
 {
-	m_pDevice = pDevice;
+	//m_pDevice = pDevice;
 
 	//// ¥¥Ω®Œ∆¿Ì
 	//D3DXCreateTextureFromFile(m_pDevice, L"Image//dx_logo.dds", &m_pTexture);

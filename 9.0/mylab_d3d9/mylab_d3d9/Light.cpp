@@ -2,8 +2,10 @@
 #include "Light.h"
 
 
-CLight::CLight(void)
+CLight::CLight(void):
+ m_lightType(LIGHT_TYPE_DIRECTIONAL)
 {
+	
 }
 
 
@@ -58,9 +60,13 @@ void CLight::Init( LPDIRECT3DDEVICE9 pDevice )
 
 void CLight::Update(float fElapsedTime)
 {
-	float x = sinf( fElapsedTime * 2.000f );
-	float y = sinf( fElapsedTime * 2.246f );
-	float z = sinf( fElapsedTime * 2.640f );
+	// 计算灯光的位置，加0.001f为了保证时间不为0
+	static double dStartTime = timeGetTime();
+	float fElpasedAppTime = (float)((timeGetTime() - dStartTime) * 0.001) + 0.001f;
+	
+	float x = sinf( fElpasedAppTime * 2.000f );
+	float y = sinf( fElpasedAppTime * 2.246f );
+	float z = sinf( fElpasedAppTime * 2.640f );
 
 	ZeroMemory( &m_light, sizeof(D3DLIGHT9) );
 
@@ -102,10 +108,10 @@ void CLight::Update(float fElapsedTime)
 	m_pDevice->SetLight( 2, &m_light );
 }
 
-void CLight::Render(float fElapsedTime)
+void CLight::Render()
 {
 	// 关闭灯光0，打开灯光1、2以便照亮墙体和地面
-	m_pDevice->LightEnable( 0, TRUE );
+	m_pDevice->LightEnable( 0, FALSE );
 	m_pDevice->LightEnable( 1, TRUE );
 	m_pDevice->LightEnable( 2, TRUE );
 }
